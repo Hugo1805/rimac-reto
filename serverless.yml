@@ -16,24 +16,11 @@ provider:
   region: us-east-1
   timeout: 10
   memorySize: 256
-  # Configuración correcta de API Gateway
   apiGateway:
-    # Rate limiting se configura a nivel de usage plan
     usagePlan:
       throttle:
         burstLimit: 10
         rateLimit: 5
-    # Resource policy
-    resourcePolicy:
-      - Effect: Allow
-        Principal: "*"
-        Action: execute-api:Invoke
-        Resource:
-          - execute-api:/*/*/*
-        Condition:
-          IpAddress:
-            aws:SourceIp:
-              - "0.0.0.0/0"
   environment:
     IS_OFFLINE: ${env:IS_OFFLINE, 'false'}
     STAGE: ${self:provider.stage}
@@ -61,192 +48,123 @@ provider:
             - 'Fn::GetAtt': [CacheTable, Arn]
 
 functions:
-  # Función para obtener token
+  # Función para obtener token - SIN AUTENTICACIÓN
   getToken:
     handler: src/handlers/auth.getToken
     events:
       - http:
           path: auth/token
           method: post
-          cors: true
-          documentation:
-            summary: 'Obtener token JWT'
-            description: 'Genera un token JWT para autenticación'
-            tags:
-              - Authentication
-            requestBody:
-              description: 'Credenciales de usuario'
-              required: true
-            requestModels:
-              'application/json': AuthRequest
-            methodResponses:
-              - statusCode: 200
-                responseBody:
-                  description: 'Token JWT generado exitosamente'
-                responseModels:
-                  'application/json': AuthResponse
-              - statusCode: 400
-                responseBody:
-                  description: 'Error en las credenciales'
-                responseModels:
-                  'application/json': AuthErrorResponse
-              - statusCode: 500
-                responseBody:
-                  description: 'Error interno del servidor'
-                responseModels:
-                  'application/json': AuthErrorResponse
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
 
   # Authorizer function
   authorizerFunc:
     handler: src/handlers/auth.authorize
 
-  # Obtener datos fusionados
+  # Obtener datos fusionados - SIN AUTENTICACIÓN
   getDatosFusionados:
     handler: src/handlers/fusion.getDatosFusionados
     events:
       - http:
           path: fusionados
           method: get
-          cors: true
-          documentation:
-            summary: 'Obtener datos fusionados'
-            description: 'Combina datos de Star Wars con información meteorológica'
-            tags:
-              - Fusion
-            methodResponses:
-              - statusCode: 200
-                responseBody:
-                  description: 'Datos fusionados obtenidos exitosamente'
-                responseModels:
-                  'application/json': FusionResponse
-              - statusCode: 400
-                responseBody:
-                  description: 'Error en la solicitud'
-                responseModels:
-                  'application/json': ErrorResponse
-              - statusCode: 500
-                responseBody:
-                  description: 'Error interno del servidor'
-                responseModels:
-                  'application/json': ErrorResponse
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
 
-  # Obtener datos fusionados por personaje
+  # Obtener datos fusionados por personaje - SIN AUTENTICACIÓN
   getFusionDataByCharacter:
     handler: src/handlers/fusion.createFusionDataByCharacter
     events:
       - http:
           path: fusion/{characterName}
           method: get
-          cors: true
-          documentation:
-            summary: 'Obtener datos fusionados por personaje'
-            description: 'Obtiene datos fusionados para un personaje específico'
-            tags:
-              - Fusion
-            pathParams:
-              - name: characterName
-                description: 'Nombre del personaje'
-                schema:
-                  type: string
-            methodResponses:
-              - statusCode: 200
-                responseBody:
-                  description: 'Datos fusionados obtenidos exitosamente'
-                responseModels:
-                  'application/json': FusionResponse
-              - statusCode: 400
-                responseBody:
-                  description: 'Error en la solicitud'
-                responseModels:
-                  'application/json': ErrorResponse
-              - statusCode: 500
-                responseBody:
-                  description: 'Error interno del servidor'
-                responseModels:
-                  'application/json': ErrorResponse
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
 
-  # Almacenar datos personalizados
+  # Almacenar datos personalizados - CON AUTENTICACIÓN
   almacenarDatos:
     handler: src/handlers/custom.almacenarDatos
     events:
       - http:
           path: almacenar
           method: post
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
           authorizer:
             name: authorizerFunc
             type: request
-          documentation:
-            summary: 'Almacenar datos personalizados'
-            description: 'Almacena datos personalizados en la base de datos'
-            tags:
-              - Storage
-            requestBody:
-              description: 'Datos a almacenar'
-              required: true
-            requestModels:
-              'application/json': requestStorage
-            methodResponses:
-              - statusCode: 200
-                responseBody:
-                  description: 'Datos almacenados exitosamente'
-                responseModels:
-                  'application/json': SuccessResponse
-              - statusCode: 401
-                responseBody:
-                  description: 'No autorizado'
-                responseModels:
-                  'application/json': ErrorResponse
-              - statusCode: 500
-                responseBody:
-                  description: 'Error interno del servidor'
-                responseModels:
-                  'application/json': ErrorResponse
 
-  # Obtener historial
+  # Obtener historial - CON AUTENTICACIÓN
   getHistorial:
     handler: src/handlers/history.getHistorial
     events:
       - http:
           path: historial
           method: get
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
           authorizer:
             name: authorizerFunc
             type: request
-          documentation:
-            summary: 'Obtener historial'
-            description: 'Consulta el historial paginado de datos'
-            tags:
-              - History
-            methodResponses:
-              - statusCode: 200
-                responseBody:
-                  description: 'Historial obtenido exitosamente'
-                responseModels:
-                  'application/json': FusionListResponse
-              - statusCode: 401
-                responseBody:
-                  description: 'No autorizado'
-                responseModels:
-                  'application/json': ErrorResponse
 
-  # Servir especificación OpenAPI
+  # Servir especificación OpenAPI - SIN AUTENTICACIÓN
   serveOpenAPI:
     handler: src/handlers/docs.serveOpenAPI
     events:
       - http:
           path: openapi.json
           method: get
-          cors: true
-          documentation:
-            summary: 'Especificación OpenAPI'
-            description: 'Sirve el archivo OpenAPI JSON'
-            tags:
-              - Documentation
-            methodResponses:
-              - statusCode: 200
-              - statusCode: 404
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
 
 resources:
   Resources:
