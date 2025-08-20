@@ -18,10 +18,7 @@ provider:
   memorySize: 256
   # Configuración simplificada de CloudWatch Logs
   logs:
-    restApi:
-      executionLogging: true
-      level: INFO
-      fullExecutionData: false
+    restApi: true
     frameworkLambda: true
   # Configuración de tracing con X-Ray
   tracing:
@@ -202,29 +199,9 @@ functions:
 
 resources:
   Resources:
-    # Agregar el rol necesario para API Gateway CloudWatch
-    ApiGatewayCloudWatchRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: ${self:service}-${self:provider.stage}-apigateway-cloudwatch-role
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - apigateway.amazonaws.com
-              Action: sts:AssumeRole
-        ManagedPolicyArns:
-          - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
-
-    # Configurar la cuenta de API Gateway para usar el rol
-    ApiGatewayAccount:
-      Type: AWS::ApiGateway::Account
-      Properties:
-        CloudWatchRoleArn: 
-          Fn::GetAtt: [ApiGatewayCloudWatchRole, Arn]
-      DependsOn: ApiGatewayCloudWatchRole
+    # REMOVER ESTAS SECCIONES QUE CAUSAN CONFLICTO:
+    # ApiGatewayCloudWatchRole:
+    # ApiGatewayAccount:
 
     # CloudWatch Log Groups (mantener existentes)
     GetTokenLogGroup:
