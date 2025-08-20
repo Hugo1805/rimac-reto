@@ -16,17 +16,12 @@ provider:
   region: us-east-1
   timeout: 10
   memorySize: 256
-  # Configuración simplificada de CloudWatch Logs
   logs:
-    restApi: true
     frameworkLambda: true
-  # Configuración de tracing con X-Ray
   tracing:
     lambda: true
     apiGateway: true
-  # Configuración de métricas
   metrics: true
-  # Remover la configuración problemática de apiGateway.logs
   apiGateway:
     usagePlan:
       throttle:
@@ -199,60 +194,6 @@ functions:
 
 resources:
   Resources:
-    # REMOVER ESTAS SECCIONES QUE CAUSAN CONFLICTO:
-    # ApiGatewayCloudWatchRole:
-    # ApiGatewayAccount:
-
-    # CloudWatch Log Groups (mantener existentes)
-    GetTokenLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: 
-          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-getToken
-        RetentionInDays: 14
-
-    AuthorizerFuncLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: 
-          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-authorizerFunc
-        RetentionInDays: 14
-
-    GetDatosFusionadosLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: 
-          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-getDatosFusionados
-        RetentionInDays: 14
-
-    GetFusionDataByCharacterLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: 
-          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-getFusionDataByCharacter
-        RetentionInDays: 14
-
-    AlmacenarDatosLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: 
-          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-almacenarDatos
-        RetentionInDays: 14
-
-    GetHistorialLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: 
-          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-getHistorial
-        RetentionInDays: 14
-
-    ServeOpenAPILogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: 
-          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-serveOpenAPI
-        RetentionInDays: 14
-
     # Dashboard de CloudWatch
     CloudWatchDashboard:
       Type: AWS::CloudWatch::Dashboard
