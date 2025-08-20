@@ -4,6 +4,8 @@
 
 **Base URL de Producción**: `https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/`
 
+**SWAGGER URL** `https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/docs`
+
 ### Endpoints Disponibles
 
 | Método | Endpoint | Descripción | Autenticación |
