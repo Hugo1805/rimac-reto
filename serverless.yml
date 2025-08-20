@@ -915,3 +915,12 @@ custom:
             - data
             - message
             - pagination
+
+package:
+  patterns:
+    - '!node_modules/**'
+    - '!.git/**'
+    - '!.nyc_output/**'
+    - '!coverage/**'
+    - '!__tests__/**'
+    - 'openapi.json'
