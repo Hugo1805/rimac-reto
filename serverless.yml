@@ -16,11 +16,31 @@ provider:
   region: us-east-1
   timeout: 10
   memorySize: 256
+  # Configuración de CloudWatch Logs
+  logs:
+    restApi:
+      accessLogging: true
+      format: 'requestId: $requestId'
+      executionLogging: true
+      level: INFO
+      fullExecutionData: true
+    frameworkLambda: true
+  # Configuración de tracing con X-Ray
+  tracing:
+    lambda: true
+    apiGateway: true
+  # Configuración de métricas
+  metrics: true
   apiGateway:
     usagePlan:
       throttle:
         burstLimit: 10
         rateLimit: 5
+    # Configuración de logs de API Gateway
+    logs:
+      level: INFO
+      dataTrace: true
+      executionLogging: true
   environment:
     IS_OFFLINE: ${env:IS_OFFLINE, 'false'}
     STAGE: ${self:provider.stage}
@@ -31,6 +51,8 @@ provider:
     SWAPI_BASE_URL: https://swapi.dev/api
     WEATHER_API_KEY: ${env:WEATHER_API_KEY, ''}
     WEATHER_BASE_URL: https://api.openweathermap.org/data/2.5
+    # Variables para CloudWatch
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
   iam:
     role:
       statements:
@@ -46,11 +68,33 @@ provider:
             - 'Fn::GetAtt': [FusionTable, Arn]
             - 'Fn::GetAtt': [CustomTable, Arn]
             - 'Fn::GetAtt': [CacheTable, Arn]
+        # Permisos para CloudWatch Logs
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: 
+            - 'Fn::Sub': 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
+        # Permisos para X-Ray
+        - Effect: Allow
+          Action:
+            - xray:PutTraceSegments
+            - xray:PutTelemetryRecords
+          Resource: '*'
+        # Permisos para CloudWatch Metrics
+        - Effect: Allow
+          Action:
+            - cloudwatch:PutMetricData
+          Resource: '*'
 
 functions:
   # Función para obtener token - SIN AUTENTICACIÓN
   getToken:
     handler: src/handlers/auth.getToken
+    # Configuración específica de logs para cada función
+    environment:
+      LOG_LEVEL: info
     events:
       - http:
           path: auth/token
@@ -168,6 +212,105 @@ functions:
 
 resources:
   Resources:
+    # CloudWatch Log Groups
+    GetTokenLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: 
+          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-getToken
+        RetentionInDays: 14
+
+    AuthorizerFuncLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: 
+          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-authorizerFunc
+        RetentionInDays: 14
+
+    GetDatosFusionadosLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: 
+          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-getDatosFusionados
+        RetentionInDays: 14
+
+    GetFusionDataByCharacterLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: 
+          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-getFusionDataByCharacter
+        RetentionInDays: 14
+
+    AlmacenarDatosLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: 
+          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-almacenarDatos
+        RetentionInDays: 14
+
+    GetHistorialLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: 
+          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-getHistorial
+        RetentionInDays: 14
+
+    ServeOpenAPILogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: 
+          Fn::Sub: /aws/lambda/${self:service}-${self:provider.stage}-serveOpenAPI
+        RetentionInDays: 14
+
+    # Dashboard de CloudWatch
+    CloudWatchDashboard:
+      Type: AWS::CloudWatch::Dashboard
+      Properties:
+        DashboardName: ${self:service}-${self:provider.stage}-dashboard
+        DashboardBody: 
+          Fn::Sub: |
+            {
+              "widgets": [
+                {
+                  "type": "metric",
+                  "x": 0,
+                  "y": 0,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      ["AWS/Lambda", "Invocations", "FunctionName", "${self:service}-${self:provider.stage}-getToken"],
+                      [".", "Errors", ".", "."],
+                      [".", "Duration", ".", "."]
+                    ],
+                    "view": "timeSeries",
+                    "stacked": false,
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Metrics",
+                    "period": 300
+                  }
+                },
+                {
+                  "type": "metric",
+                  "x": 0,
+                  "y": 6,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      ["AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "${self:provider.environment.DYNAMODB_TABLE_FUSION}"],
+                      [".", "ConsumedWriteCapacityUnits", ".", "."]
+                    ],
+                    "view": "timeSeries",
+                    "stacked": false,
+                    "region": "${AWS::Region}",
+                    "title": "DynamoDB Metrics",
+                    "period": 300
+                  }
+                }
+              ]
+            }
+
     FusionTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -188,6 +331,9 @@ resources:
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
+        # Habilitar CloudWatch Insights para DynamoDB
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
 
     CustomTable:
       Type: AWS::DynamoDB::Table
@@ -209,6 +355,8 @@ resources:
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
 
     CacheTable:
       Type: AWS::DynamoDB::Table
@@ -224,6 +372,19 @@ resources:
           AttributeName: ttl
           Enabled: true
         BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
+  Outputs:
+    CloudWatchDashboardURL:
+      Description: 'CloudWatch Dashboard URL'
+      Value:
+        Fn::Sub: 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${self:service}-${self:provider.stage}-dashboard'
+    
+    SNSTopicArn:
+      Description: 'SNS Topic ARN for alerts'
+      Value:
+        Ref: SNSTopicAlerts
 
 custom:
   dynamodb:
