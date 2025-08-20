@@ -1,5 +1,7 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { createResponse } from '../utils/helpers';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export const serveDocs: APIGatewayProxyHandler = async () => {
   try {
@@ -53,8 +55,13 @@ export const serveDocs: APIGatewayProxyHandler = async () => {
 
 export const serveOpenAPI: APIGatewayProxyHandler = async () => {
   try {
-    // Importar el archivo openapi.json
-    const openApiSpec = require('../../openapi.json');
+    // Find the openapi.json file from the project root
+    const projectRoot = process.cwd();
+    const openApiPath = path.join(projectRoot, 'openapi.json');
+    
+    // Read the file content
+    const openApiContent = fs.readFileSync(openApiPath, 'utf8');
+    const openApiSpec = JSON.parse(openApiContent);
     
     return createResponse(200, openApiSpec, {
       'Content-Type': 'application/json'
