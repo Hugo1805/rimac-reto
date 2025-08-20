@@ -8,48 +8,57 @@ API RESTful desarrollada con Node.js 20, TypeScript y Serverless Framework, desp
 
 ### 🚀 Funcionalidades Principales
 
-- **GET /fusionados**: Combina datos de Star Wars con información meteorológica
-- **POST /almacenar**: Almacena datos personalizados en la base de datos
-- **GET /historial**: Consulta el historial paginado de datos almacenados
+- **GET /people**: Obtiene información de personajes de Star Wars
+- **POST /people**: Crea nuevos personajes personalizados
+- **GET /people/{id}**: Obtiene un personaje específico por ID
+- **PUT /people/{id}**: Actualiza un personaje existente
+- **DELETE /people/{id}**: Elimina un personaje
 
 ### 🛡️ Seguridad y Autenticación
 
 - Autenticación JWT para endpoints protegidos
 - Autorización personalizada con AWS Lambda Authorizer
 - Validación de datos con Joi
+- CORS configurado para desarrollo
 
 ### ⚡ Optimización y Performance
 
-- Sistema de caché con DynamoDB (TTL de 30 minutos)
-- Paginación eficiente
+- Sistema de caché con DynamoDB
 - Timeout optimizado a 30 segundos
-- Memoria Lambda configurada a 256MB
+- Memoria Lambda configurada a 128MB
+- Retry automático en caso de errores
 
 ### 🧪 Calidad de Código
 
 - TypeScript para tipado estático
 - Pruebas unitarias con Jest
 - Linting con ESLint
-- Cobertura de código
+- Arquitectura limpia y modular
 
 ## Arquitectura
 
 ```
 ├── src/
 │   ├── handlers/          # Lambda handlers
-│   │   ├── fusion.ts      # GET /fusionados
-│   │   ├── custom.ts      # POST /almacenar
-│   │   ├── history.ts     # GET /historial
-│   │   └── auth.ts        # JWT Authorizer
+│   │   ├── getPeople.ts   # GET /people
+│   │   ├── createPerson.ts # POST /people
+│   │   ├── getPerson.ts   # GET /people/{id}
+│   │   ├── updatePerson.ts # PUT /people/{id}
+│   │   ├── deletePerson.ts # DELETE /people/{id}
+│   │   └── authorizer.ts  # JWT Authorizer
 │   ├── services/          # Servicios de negocio
 │   │   ├── swapiService.ts
-│   │   ├── weatherService.ts
-│   │   ├── dynamodbService.ts
-│   │   └── fusionService.ts
+│   │   ├── dynamoService.ts
+│   │   └── authService.ts
 │   ├── types/             # Definiciones TypeScript
 │   ├── utils/             # Utilidades
+│   │   ├── response.ts
+│   │   ├── validation.ts
+│   │   └── logger.ts
 │   └── __tests__/         # Pruebas unitarias
 ├── serverless.yml         # Configuración Serverless
+├── jest.config.js         # Configuración Jest
+├── tsconfig.json          # Configuración TypeScript
 └── package.json
 ```
 
@@ -59,8 +68,8 @@ API RESTful desarrollada con Node.js 20, TypeScript y Serverless Framework, desp
 
 - Node.js 20+
 - AWS CLI configurado
-- Serverless Framework CLI
-- API Key de OpenWeatherMap
+- Serverless Framework CLI (`npm install -g serverless`)
+- Cuenta AWS con permisos apropiados
 
 ### 1. Instalar dependencias
 
@@ -73,18 +82,21 @@ npm install
 Crear un archivo `.env` en la raíz del proyecto:
 
 ```env
-JWT_SECRET=tu-clave-secreta-muy-segura
-WEATHER_API_KEY=tu-api-key-de-openweathermap
+JWT_SECRET=tu-clave-secreta-muy-segura-aqui
+AWS_REGION=us-east-1
+STAGE=dev
 ```
 
 ### 3. Desarrollo local
 
 ```bash
 # Instalar DynamoDB Local
-npm run dynamodb:install
+serverless dynamodb install
 
 # Iniciar servicios locales
-npm run offline
+npm run dev
+# o
+serverless offline start
 ```
 
 ### 4. Despliegue
@@ -92,12 +104,21 @@ npm run offline
 ```bash
 # Desarrollo
 npm run deploy:dev
+# o
+serverless deploy --stage dev
 
 # Producción
 npm run deploy:prod
+# o
+serverless deploy --stage prod
 ```
 
 ## Uso de la API
+
+### Base URL
+
+- **Local**: `http://localhost:3000`
+- **AWS**: `https://{api-id}.execute-api.{region}.amazonaws.com/{stage}`
 
 ### Autenticación
 
@@ -109,86 +130,147 @@ Authorization: Bearer <tu-jwt-token>
 
 ### Endpoints
 
-#### GET /fusionados
+#### GET /people
 
-Obtiene datos fusionados de Star Wars y meteorológicos.
+Obtiene la lista de personajes de Star Wars.
 
 ```bash
-curl -X GET https://tu-api-gateway-url/dev/fusionados
+curl -X GET https://tu-api-gateway-url/dev/people
 ```
 
 **Respuesta:**
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "123e4567-e89b-12d3-a456-426614174000",
-    "timestamp": 1635768000000,
-    "character": {
+  "statusCode": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": "1",
       "name": "Luke Skywalker",
-      "height": 172,
-      "mass": 77,
-      "hairColor": "blond",
-      "skinColor": "fair",
-      "eyeColor": "blue",
-      "birthYear": "19BBY",
-      "gender": "Male"
-    },
-    "planet": {
-      "name": "Tatooine",
-      "climate": "arid",
-      "terrain": "desert",
-      "population": 200000,
-      "gravity": 1,
-      "diameter": 10465
-    },
-    "weather": {
-      "temperature": 35.5,
-      "feelsLike": 34.8,
-      "humidity": 25,
-      "pressure": 1013,
-      "windSpeed": 2.5,
-      "description": "clear sky",
-      "visibility": 10000
-    },
-    "fusionScore": 75.5
-  }
+      "height": "172",
+      "mass": "77",
+      "hair_color": "blond",
+      "skin_color": "fair",
+      "eye_color": "blue",
+      "birth_year": "19BBY",
+      "gender": "male",
+      "homeworld": "https://swapi.py4e.com/api/planets/1/",
+      "created": "2014-12-09T13:50:51.644000Z",
+      "edited": "2014-12-20T21:17:56.891000Z"
+    }
+  ]
 }
 ```
 
-#### POST /almacenar
+#### POST /people
 
-Almacena datos personalizados (requiere autenticación).
+Crea un nuevo personaje personalizado (requiere autenticación).
 
 ```bash
-curl -X POST https://tu-api-gateway-url/dev/almacenar \
+curl -X POST https://tu-api-gateway-url/dev/people \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "data": {
-      "titulo": "Mi dato personalizado",
-      "valor": 42
-    },
-    "metadata": {
-      "category": "test",
-      "tags": ["ejemplo", "prueba"]
-    }
+    "name": "Nuevo Personaje",
+    "height": "180",
+    "mass": "80",
+    "hair_color": "brown",
+    "skin_color": "light",
+    "eye_color": "brown",
+    "birth_year": "10BBY",
+    "gender": "male"
   }'
 ```
 
-#### GET /historial
+#### GET /people/{id}
 
-Consulta el historial paginado (requiere autenticación).
+Obtiene un personaje específico por ID.
 
 ```bash
-curl -X GET "https://tu-api-gateway-url/dev/historial?page=1&limit=10&type=fusion" \
+curl -X GET https://tu-api-gateway-url/dev/people/1
+```
+
+#### PUT /people/{id}
+
+Actualiza un personaje existente (requiere autenticación).
+
+```bash
+curl -X PUT https://tu-api-gateway-url/dev/people/1 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Luke Skywalker Updated",
+    "height": "175"
+  }'
+```
+
+#### DELETE /people/{id}
+
+Elimina un personaje (requiere autenticación).
+
+```bash
+curl -X DELETE https://tu-api-gateway-url/dev/people/1 \
   -H "Authorization: Bearer <token>"
 ```
 
-**Parámetros de consulta:**
-- `page`: Número de página (default: 1)
-- `limit`: Elementos por página (default: 10, max: 50)
-- `type`: Tipo de datos ('fusion' o 'custom', default: 'fusion')
+## Scripts Disponibles
+
+```bash
+# Desarrollo
+npm run dev              # Inicia servidor local
+npm run build            # Compila TypeScript
+npm run deploy:dev       # Despliega a desarrollo
+npm run deploy:prod      # Despliega a producción
+
+# Testing
+npm test                 # Ejecuta pruebas
+npm run test:watch       # Pruebas en modo watch
+npm run test:coverage    # Cobertura de código
+
+# Calidad de código
+npm run lint             # Ejecuta ESLint
+npm run lint:fix         # Corrige errores de linting
+
+# Utilidades
+npm run remove:dev       # Elimina stack de desarrollo
+npm run remove:prod      # Elimina stack de producción
+npm run logs             # Ver logs de funciones
+```
+
+## Configuración Serverless
+
+### Funciones Lambda
+
+- **getPeople**: Handler para listar personajes
+- **createPerson**: Handler para crear personajes
+- **getPerson**: Handler para obtener personaje por ID
+- **updatePerson**: Handler para actualizar personajes
+- **deletePerson**: Handler para eliminar personajes
+- **authorizer**: Función de autorización JWT
+
+### Recursos AWS
+
+#### DynamoDB Tables
+
+- **PeopleTable**: Almacena personajes personalizados
+  - Partition Key: `id` (String)
+  - Modo de facturación: Pay-per-request
+  - Eliminación automática en stack removal
+
+#### API Gateway
+
+- **Configuración CORS**: Habilitada para desarrollo
+- **Autorización**: JWT personalizada para endpoints protegidos
+- **Validación**: Schemas de request/response
+
+### Variables de Entorno por Función
+
+```yaml
+environment:
+  PEOPLE_TABLE: !Ref PeopleTable
+  JWT_SECRET: ${env:JWT_SECRET}
+  STAGE: ${self:provider.stage}
+```
 
 ## Pruebas
 
@@ -196,40 +278,44 @@ curl -X GET "https://tu-api-gateway-url/dev/historial?page=1&limit=10&type=fusio
 # Ejecutar todas las pruebas
 npm test
 
-# Pruebas en modo watch
-npm run test:watch
+# Pruebas específicas
+npm test -- --testPathPattern=handlers
 
 # Cobertura de código
 npm run test:coverage
+
+# Modo interactivo
+npm run test:watch
 ```
 
-## Datos Fusionados
+## Monitoreo y Logs
 
-### Mapeo de Planetas a Ciudades
+### Ver logs de funciones
 
-La API mapea planetas de Star Wars a ciudades terrestres para obtener datos meteorológicos:
+```bash
+# Logs de una función específica
+serverless logs -f getPeople --tail
 
-- **Tatooine** → Phoenix (desierto)
-- **Hoth** → Reykjavik (frío)
-- **Coruscant** → Tokyo (metrópolis)
-- **Dagobah** → Miami (pantanoso)
-- **Endor** → Seattle (bosque)
-- Y más...
+# Logs de todas las funciones
+npm run logs
+```
 
-### Fusion Score
+### CloudWatch
 
-Métrica personalizada que evalúa la "compatibilidad" entre el personaje, su planeta y el clima actual:
-
-- **Factores del personaje** (0-30 pts): altura, peso, características
-- **Factores del planeta** (0-30 pts): población, tamaño, gravedad
-- **Factores meteorológicos** (0-40 pts): temperatura, humedad, viento, visibilidad
+Las métricas y logs están disponibles en AWS CloudWatch:
+- Duración de ejecución
+- Errores y timeouts
+- Invocaciones por minuto
+- Memoria utilizada
 
 ## Tecnologías Utilizadas
 
-- **Backend**: Node.js 20, TypeScript
-- **Framework**: Serverless Framework
-- **Cloud**: AWS Lambda, API Gateway, DynamoDB
-- **APIs Externas**: SWAPI, OpenWeatherMap API
+- **Runtime**: Node.js 20.x
+- **Lenguaje**: TypeScript
+- **Framework**: Serverless Framework v3
+- **Cloud Provider**: AWS
+- **Servicios AWS**: Lambda, API Gateway, DynamoDB, CloudWatch
+- **APIs Externas**: Star Wars API (SWAPI)
 - **Testing**: Jest
 - **Linting**: ESLint
 - **Validación**: Joi
@@ -237,34 +323,47 @@ Métrica personalizada que evalúa la "compatibilidad" entre el personaje, su pl
 
 ## Variables de Entorno
 
-| Variable | Descripción | Requerida |
-|----------|-------------|-----------|
-| `JWT_SECRET` | Clave secreta para JWT | Sí |
-| `WEATHER_API_KEY` | API Key de OpenWeatherMap | Sí |
-| `STAGE` | Entorno de despliegue | No |
-
-## Recursos AWS
-
-### DynamoDB Tables
-
-1. **Fusion Table**: Almacena datos fusionados
-2. **Custom Table**: Almacena datos personalizados
-3. **Cache Table**: Sistema de caché con TTL
-
-### Lambda Functions
-
-1. **getDatosFusionados**: Handler para datos fusionados
-2. **almacenarDatos**: Handler para almacenar datos
-3. **getHistorial**: Handler para consultar historial
-4. **authorizerFunc**: Autorización JWT
+| Variable | Descripción | Requerida | Default |
+|----------|-------------|-----------|---------|
+| `JWT_SECRET` | Clave secreta para JWT | Sí | - |
+| `AWS_REGION` | Región de AWS | No | us-east-1 |
+| `STAGE` | Entorno de despliegue | No | dev |
 
 ## Optimización de Costos
 
-- **Pay-per-request** para DynamoDB
-- **Timeout optimizado** a 30 segundos
-- **Memoria mínima** necesaria (256MB)
-- **Caché inteligente** para reducir llamadas a APIs externas
-- **Paginación** para limitar transferencia de datos
+- **DynamoDB**: Modo pay-per-request (solo pagas por uso)
+- **Lambda**: Timeout de 30s y memoria de 128MB optimizada
+- **API Gateway**: Sin costos adicionales en tier gratuito
+- **CloudWatch**: Logs con retención automática
+
+## Seguridad
+
+- **IAM Roles**: Permisos mínimos necesarios
+- **JWT**: Tokens con expiración
+- **CORS**: Configurado para desarrollo seguro
+- **Validación**: Schemas estrictos para requests
+- **Encriptación**: En tránsito y en reposo
+
+## Troubleshooting
+
+### Errores comunes
+
+1. **Error de permisos AWS**
+   ```bash
+   aws configure list
+   serverless config credentials --provider aws --key YOUR_KEY --secret YOUR_SECRET
+   ```
+
+2. **DynamoDB Local no inicia**
+   ```bash
+   serverless dynamodb install
+   serverless dynamodb start
+   ```
+
+3. **Error de compilación TypeScript**
+   ```bash
+   npm run build
+   ```
 
 ## Contribución
 
