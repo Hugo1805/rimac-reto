@@ -16,13 +16,14 @@ provider:
   region: us-east-1
   timeout: 10
   memorySize: 256
-  # Agregar configuración de rate limiting
+  # Configuración correcta de API Gateway
   apiGateway:
-    # Rate limiting global
-    throttle:
-      burstLimit: 10    # Máximo de requests en burst
-      rateLimit: 5     # Requests por segundo
-    # Rate limiting por endpoint
+    # Rate limiting se configura a nivel de usage plan
+    usagePlan:
+      throttle:
+        burstLimit: 10
+        rateLimit: 5
+    # Resource policy
     resourcePolicy:
       - Effect: Allow
         Principal: "*"
@@ -107,9 +108,6 @@ functions:
           path: fusionados
           method: get
           cors: true
-          throttle:
-            burstLimit: 10
-            rateLimit: 5
           documentation:
             summary: 'Obtener datos fusionados'
             description: 'Combina datos de Star Wars con información meteorológica'
@@ -140,9 +138,6 @@ functions:
           path: fusion/{characterName}
           method: get
           cors: true
-          throttle:
-            burstLimit: 10
-            rateLimit: 5
           documentation:
             summary: 'Obtener datos fusionados por personaje'
             description: 'Obtiene datos fusionados para un personaje específico'
@@ -178,9 +173,6 @@ functions:
           path: almacenar
           method: post
           cors: true
-          throttle:
-            burstLimit: 10
-            rateLimit: 5
           authorizer:
             name: authorizerFunc
             type: request
@@ -219,9 +211,6 @@ functions:
           path: historial
           method: get
           cors: true
-          throttle:
-            burstLimit: 10
-            rateLimit: 5
           authorizer:
             name: authorizerFunc
             type: request
