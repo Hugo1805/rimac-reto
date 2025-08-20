@@ -22,13 +22,6 @@ export class DynamoDBService {
       region: process.env.AWS_REGION || 'us-east-1'
     });
 
-    if (process.env.IS_OFFLINE === 'true') {
-      client = new DynamoDBClient({
-        region: process.env.AWS_REGION || 'us-east-1',
-        credentials: fromIni({ profile: process.env.AWS_PROFILE || 'default' }),
-      });
-    }
-
     this.docClient = DynamoDBDocumentClient.from(client, {
       marshallOptions: { removeUndefinedValues: true },
     });
