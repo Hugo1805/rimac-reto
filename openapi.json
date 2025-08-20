@@ -961,7 +961,7 @@
       "description": "Servidor de desarrollo local"
     },
     {
-      "url": "https://api.rimac.com/dev/",
+      "url": "https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/",
       "description": "Servidor de producción"
     }
   ],

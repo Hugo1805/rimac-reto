@@ -85,11 +85,6 @@ functions:
             origin: '*'
             headers:
               - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
             allowCredentials: false
           documentation:
             summary: 'Obtener token JWT'
@@ -133,11 +128,6 @@ functions:
             origin: '*'
             headers:
               - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
             allowCredentials: false
           documentation:
             summary: 'Obtener datos fusionados'
@@ -172,11 +162,6 @@ functions:
             origin: '*'
             headers:
               - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
             allowCredentials: false
           documentation:
             summary: 'Obtener datos fusionados por personaje'
@@ -216,11 +201,7 @@ functions:
             origin: '*'
             headers:
               - Content-Type
-              - X-Amz-Date
               - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
             allowCredentials: false
           authorizer:
             name: authorizerFunc
@@ -263,11 +244,7 @@ functions:
             origin: '*'
             headers:
               - Content-Type
-              - X-Amz-Date
               - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
             allowCredentials: false
           authorizer:
             name: authorizerFunc
@@ -300,11 +277,6 @@ functions:
             origin: '*'
             headers:
               - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
             allowCredentials: false
           documentation:
             summary: 'Especificación OpenAPI'
@@ -320,7 +292,11 @@ functions:
       - http:
           path: docs
           method: get
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+            allowCredentials: false
 
 resources:
   Resources:
@@ -460,7 +436,7 @@ custom:
     servers:
       - url: 'http://localhost:3000/dev/'
         description: 'Servidor de desarrollo local'
-      - url: 'https://api.rimac.com/dev/'
+      - url: 'https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/'
         description: 'Servidor de producción'
     securitySchemes:
       bearerAuth:
@@ -918,9 +894,14 @@ custom:
 
 package:
   patterns:
-    - '!node_modules/**'
+    - '!node_modules/@types/**'
+    - '!node_modules/typescript/**'
+    - '!node_modules/jest/**'
+    - '!node_modules/@jest/**'
     - '!.git/**'
     - '!.nyc_output/**'
     - '!coverage/**'
     - '!__tests__/**'
+    - '!*.test.ts'
+    - '!*.spec.ts'
     - 'openapi.json'
