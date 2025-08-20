@@ -537,11 +537,7 @@
       "Access-Control-Allow-Origin": {
         "type": "string",
         "default": "*",
-        "example": "https://developer.mozilla.org"
-      },
-      "Access-Control-Allow-Credentials": {
-        "type": "boolean",
-        "default": true
+        "example": "*"
       },
       "characterName": {
         "type": "string"
@@ -610,12 +606,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -634,12 +624,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -657,12 +641,6 @@
                 "description": "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin). - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)",
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
-                }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
                 }
               }
             }
@@ -695,12 +673,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -719,12 +691,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -742,12 +708,6 @@
                 "description": "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin). - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)",
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
-                }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
                 }
               }
             }
@@ -790,12 +750,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -814,12 +768,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -837,12 +785,6 @@
                 "description": "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin). - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)",
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
-                }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
                 }
               }
             }
@@ -886,12 +828,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -910,12 +846,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -933,12 +863,6 @@
                 "description": "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin). - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)",
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
-                }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
                 }
               }
             }
@@ -971,12 +895,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -994,12 +912,6 @@
                 "description": "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin). - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)",
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
-                }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
                 }
               }
             }
@@ -1025,12 +937,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
                 }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
-                }
               }
             }
           },
@@ -1041,12 +947,6 @@
                 "description": "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin). - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)",
                 "schema": {
                   "$ref": "#/components/schemas/Access-Control-Allow-Origin"
-                }
-              },
-              "Access-Control-Allow-Credentials": {
-                "description": "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)",
-                "schema": {
-                  "$ref": "#/components/schemas/Access-Control-Allow-Credentials"
                 }
               }
             }

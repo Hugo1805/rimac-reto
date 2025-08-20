@@ -91,6 +91,32 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: false
+          documentation:
+            summary: 'Obtener token JWT'
+            description: 'Genera un token JWT para autenticación'
+            tags:
+              - Authentication
+            requestBody:
+              description: 'Credenciales de usuario'
+              required: true
+            requestModels:
+              'application/json': AuthRequest
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: 'Token JWT generado exitosamente'
+                responseModels:
+                  'application/json': AuthResponse
+              - statusCode: 400
+                responseBody:
+                  description: 'Error en las credenciales'
+                responseModels:
+                  'application/json': AuthErrorResponse
+              - statusCode: 500
+                responseBody:
+                  description: 'Error interno del servidor'
+                responseModels:
+                  'application/json': AuthErrorResponse
 
   # Authorizer function
   authorizerFunc:
@@ -113,6 +139,27 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: false
+          documentation:
+            summary: 'Obtener datos fusionados'
+            description: 'Combina datos de Star Wars con información meteorológica'
+            tags:
+              - Fusion
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: 'Datos fusionados obtenidos exitosamente'
+                responseModels:
+                  'application/json': FusionResponse
+              - statusCode: 400
+                responseBody:
+                  description: 'Error en la solicitud'
+                responseModels:
+                  'application/json': ErrorResponse
+              - statusCode: 500
+                responseBody:
+                  description: 'Error interno del servidor'
+                responseModels:
+                  'application/json': ErrorResponse
 
   # Obtener datos fusionados por personaje - SIN AUTENTICACIÓN
   getFusionDataByCharacter:
@@ -131,6 +178,32 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: false
+          documentation:
+            summary: 'Obtener datos fusionados por personaje'
+            description: 'Obtiene datos fusionados para un personaje específico'
+            tags:
+              - Fusion
+            pathParams:
+              - name: characterName
+                description: 'Nombre del personaje'
+                schema:
+                  type: string
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: 'Datos fusionados obtenidos exitosamente'
+                responseModels:
+                  'application/json': FusionResponse
+              - statusCode: 400
+                responseBody:
+                  description: 'Error en la solicitud'
+                responseModels:
+                  'application/json': ErrorResponse
+              - statusCode: 500
+                responseBody:
+                  description: 'Error interno del servidor'
+                responseModels:
+                  'application/json': ErrorResponse
 
   # Almacenar datos personalizados - CON AUTENTICACIÓN
   almacenarDatos:
@@ -152,6 +225,32 @@ functions:
           authorizer:
             name: authorizerFunc
             type: request
+          documentation:
+            summary: 'Almacenar datos personalizados'
+            description: 'Almacena datos personalizados en la base de datos'
+            tags:
+              - Storage
+            requestBody:
+              description: 'Datos a almacenar'
+              required: true
+            requestModels:
+              'application/json': requestStorage
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: 'Datos almacenados exitosamente'
+                responseModels:
+                  'application/json': SuccessResponse
+              - statusCode: 401
+                responseBody:
+                  description: 'No autorizado'
+                responseModels:
+                  'application/json': ErrorResponse
+              - statusCode: 500
+                responseBody:
+                  description: 'Error interno del servidor'
+                responseModels:
+                  'application/json': ErrorResponse
 
   # Obtener historial - CON AUTENTICACIÓN
   getHistorial:
@@ -173,6 +272,22 @@ functions:
           authorizer:
             name: authorizerFunc
             type: request
+          documentation:
+            summary: 'Obtener historial'
+            description: 'Consulta el historial paginado de datos'
+            tags:
+              - History
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: 'Historial obtenido exitosamente'
+                responseModels:
+                  'application/json': FusionListResponse
+              - statusCode: 401
+                responseBody:
+                  description: 'No autorizado'
+                responseModels:
+                  'application/json': ErrorResponse
 
   # Servir especificación OpenAPI - SIN AUTENTICACIÓN
   serveOpenAPI:
@@ -191,6 +306,14 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: false
+          documentation:
+            summary: 'Especificación OpenAPI'
+            description: 'Sirve el archivo OpenAPI JSON'
+            tags:
+              - Documentation
+            methodResponses:
+              - statusCode: 200
+              - statusCode: 404
 
 resources:
   Resources:
