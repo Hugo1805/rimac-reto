@@ -1,5 +1,35 @@
 # Rimac Reto - API RESTful con Serverless Framework
 
+## 🌐 API Endpoints
+
+**Base URL de Producción**: `https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/`
+
+### Endpoints Disponibles
+
+| Método | Endpoint | Descripción | Autenticación |
+|--------|----------|-------------|---------------|
+| `POST` | `/auth/token` | Obtener token JWT | ❌ No |
+| `GET` | `/fusionados` | Datos fusionados aleatorios | ❌ No |
+| `GET` | `/fusion/{characterName}` | Datos fusionados por personaje | ❌ No |
+| `POST` | `/almacenar` | Almacenar datos personalizados | ✅ Sí |
+| `GET` | `/historial` | Consultar historial paginado | ✅ Sí |
+| `GET` | `/openapi.json` | Especificación OpenAPI | ❌ No |
+| `GET` | `/docs` | Documentación interactiva | ❌ No |
+
+### 🚀 Prueba rápida
+
+```bash
+# Obtener datos fusionados
+curl https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/fusionados
+
+# Obtener token de autenticación
+curl -X POST https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "rimac2025"}'
+```
+
+---
+
 ## Descripción
 
 API RESTful desarrollada con Node.js 20, TypeScript y Serverless Framework, desplegada en AWS Lambda. La API integra datos de la API de Star Wars (SWAPI) con información meteorológica para crear un modelo fusionado de datos.
@@ -8,46 +38,47 @@ API RESTful desarrollada con Node.js 20, TypeScript y Serverless Framework, desp
 
 ### 🚀 Funcionalidades Principales
 
-- **GET /people**: Obtiene información de personajes de Star Wars
-- **POST /people**: Crea nuevos personajes personalizados
-- **GET /people/{id}**: Obtiene un personaje específico por ID
-- **PUT /people/{id}**: Actualiza un personaje existente
-- **DELETE /people/{id}**: Elimina un personaje
+- **GET /fusionados**: Obtiene datos fusionados de Star Wars y meteorológicos
+- **GET /fusion/{characterName}**: Obtiene datos fusionados específicos por personaje
+- **POST /almacenar**: Almacena datos personalizados (requiere autenticación)
+- **GET /historial**: Consulta historial paginado (requiere autenticación)
+- **POST /auth/token**: Genera token JWT para autenticación
 
 ### 🛡️ Seguridad y Autenticación
 
 - Autenticación JWT para endpoints protegidos
 - Autorización personalizada con AWS Lambda Authorizer
-- Validación de datos con Joi
 - CORS configurado para desarrollo
+- Rate limiting y throttling configurado
 
 ### ⚡ Optimización y Performance
 
-- Sistema de caché con DynamoDB
-- Timeout optimizado a 30 segundos
-- Memoria Lambda configurada a 128MB
-- Retry automático en caso de errores
+- Sistema de caché con DynamoDB (TTL automático)
+- Timeout optimizado a 10 segundos
+- Memoria Lambda configurada a 256MB
+- Point-in-time recovery habilitado
+- X-Ray tracing activado
 
 ### 🧪 Calidad de Código
 
 - TypeScript para tipado estático
-- Pruebas unitarias con Jest
-- Linting con ESLint
 - Arquitectura limpia y modular
+- Documentación OpenAPI automática
+- Monitoreo con CloudWatch Dashboard
 
 ## Arquitectura
 
 ```
 ├── src/
 │   ├── handlers/          # Lambda handlers
-│   │   ├── getPeople.ts   # GET /people
-│   │   ├── createPerson.ts # POST /people
-│   │   ├── getPerson.ts   # GET /people/{id}
-│   │   ├── updatePerson.ts # PUT /people/{id}
-│   │   ├── deletePerson.ts # DELETE /people/{id}
-│   │   └── authorizer.ts  # JWT Authorizer
+│   │   ├── auth.ts        # Autenticación y autorización
+│   │   ├── fusion.ts      # Datos fusionados
+│   │   ├── custom.ts      # Almacenamiento personalizado
+│   │   ├── history.ts     # Historial
+│   │   └── docs.ts        # Documentación
 │   ├── services/          # Servicios de negocio
 │   │   ├── swapiService.ts
+│   │   ├── weatherService.ts
 │   │   ├── dynamoService.ts
 │   │   └── authService.ts
 │   ├── types/             # Definiciones TypeScript
@@ -57,6 +88,7 @@ API RESTful desarrollada con Node.js 20, TypeScript y Serverless Framework, desp
 │   │   └── logger.ts
 │   └── __tests__/         # Pruebas unitarias
 ├── serverless.yml         # Configuración Serverless
+├── openapi.json          # Especificación OpenAPI
 ├── jest.config.js         # Configuración Jest
 ├── tsconfig.json          # Configuración TypeScript
 └── package.json
@@ -83,8 +115,9 @@ Crear un archivo `.env` en la raíz del proyecto:
 
 ```env
 JWT_SECRET=tu-clave-secreta-muy-segura-aqui
-AWS_REGION=us-east-1
-STAGE=dev
+WEATHER_API_KEY=tu-api-key-de-openweathermap
+LOG_LEVEL=info
+IS_OFFLINE=false
 ```
 
 ### 3. Desarrollo local
@@ -117,12 +150,28 @@ serverless deploy --stage prod
 
 ### Base URL
 
-- **Local**: `http://localhost:3000`
-- **AWS**: `https://{api-id}.execute-api.{region}.amazonaws.com/{stage}`
+- **Local**: `http://localhost:3000/dev`
+- **AWS**: `https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev`
+
+### Documentación Interactive
+
+- **OpenAPI Spec**: `GET /openapi.json`
+- **Docs**: `GET /docs`
 
 ### Autenticación
 
-Para endpoints protegidos, incluir el token JWT en el header:
+Para endpoints protegidos, primero obtén un token:
+
+```bash
+curl -X POST https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "rimac2025"
+  }'
+```
+
+Incluir el token JWT en el header para endpoints protegidos:
 
 ```bash
 Authorization: Bearer <tu-jwt-token>
@@ -130,87 +179,156 @@ Authorization: Bearer <tu-jwt-token>
 
 ### Endpoints
 
-#### GET /people
+#### POST /auth/token
 
-Obtiene la lista de personajes de Star Wars.
+Genera un token JWT para autenticación.
 
 ```bash
-curl -X GET https://tu-api-gateway-url/dev/people
+curl -X POST https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "rimac2025"
+  }'
 ```
 
 **Respuesta:**
 ```json
 {
-  "statusCode": 200,
-  "message": "Success",
-  "data": [
-    {
-      "id": "1",
-      "name": "Luke Skywalker",
-      "height": "172",
-      "mass": "77",
-      "hair_color": "blond",
-      "skin_color": "fair",
-      "eye_color": "blue",
-      "birth_year": "19BBY",
-      "gender": "male",
-      "homeworld": "https://swapi.py4e.com/api/planets/1/",
-      "created": "2014-12-09T13:50:51.644000Z",
-      "edited": "2014-12-20T21:17:56.891000Z"
-    }
-  ]
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "message": "Token generado exitosamente",
+  "expiresIn": "1h"
 }
 ```
 
-#### POST /people
+#### GET /fusionados
 
-Crea un nuevo personaje personalizado (requiere autenticación).
+Obtiene datos fusionados de Star Wars con información meteorológica.
 
 ```bash
-curl -X POST https://tu-api-gateway-url/dev/people \
+curl -X GET https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/fusionados
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "c366eccd-5fc5-48db-a600-c9aeecc8c8f0",
+    "timestamp": 1755715395659,
+    "character": {
+      "name": "Yarael Poof",
+      "height": 264,
+      "mass": 0,
+      "hairColor": "none",
+      "skinColor": "white",
+      "eyeColor": "yellow",
+      "birthYear": "unknown",
+      "gender": "Male"
+    },
+    "planet": {
+      "name": "Quermia",
+      "climate": "unknown",
+      "terrain": "unknown",
+      "population": 0,
+      "gravity": 1,
+      "diameter": 0
+    },
+    "weather": {
+      "temperature": 18.5,
+      "feelsLike": 17.8,
+      "humidity": 54,
+      "pressure": 1017,
+      "windSpeed": 4.1,
+      "description": "few clouds",
+      "visibility": 10000
+    },
+    "fusionScore": 70
+  },
+  "message": "Datos fusionados obtenidos exitosamente"
+}
+```
+
+#### GET /fusion/{characterName}
+
+Obtiene datos fusionados para un personaje específico.
+
+```bash
+curl -X GET https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/fusion/luke-skywalker
+```
+
+#### POST /almacenar
+
+Almacena datos personalizados (requiere autenticación).
+
+```bash
+curl -X POST https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/almacenar \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Nuevo Personaje",
-    "height": "180",
-    "mass": "80",
-    "hair_color": "brown",
-    "skin_color": "light",
-    "eye_color": "brown",
-    "birth_year": "10BBY",
-    "gender": "male"
+    "data": {
+      "nombre": "Datos personalizados",
+      "tipo": "ejemplo"
+    }
   }'
 ```
 
-#### GET /people/{id}
+#### GET /historial
 
-Obtiene un personaje específico por ID.
-
-```bash
-curl -X GET https://tu-api-gateway-url/dev/people/1
-```
-
-#### PUT /people/{id}
-
-Actualiza un personaje existente (requiere autenticación).
+Consulta el historial paginado de datos (requiere autenticación).
 
 ```bash
-curl -X PUT https://tu-api-gateway-url/dev/people/1 \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Luke Skywalker Updated",
-    "height": "175"
-  }'
-```
-
-#### DELETE /people/{id}
-
-Elimina un personaje (requiere autenticación).
-
-```bash
-curl -X DELETE https://tu-api-gateway-url/dev/people/1 \
+curl -X GET https://2323hhqgu4.execute-api.us-east-1.amazonaws.com/dev/historial?page=1&limit=10 \
   -H "Authorization: Bearer <token>"
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "e6bd24dc-2fe3-4cf6-be31-15cd75fb93f2",
+      "timestamp": 1755709481209,
+      "character": {
+        "name": "Leia Organa",
+        "height": 150,
+        "mass": 49,
+        "hairColor": "brown",
+        "skinColor": "light",
+        "eyeColor": "brown",
+        "birthYear": "19BBY",
+        "gender": "Female"
+      },
+      "planet": {
+        "name": "Alderaan",
+        "climate": "temperate",
+        "terrain": "grasslands, mountains",
+        "population": 2000000000,
+        "gravity": 1,
+        "diameter": 12500
+      },
+      "weather": {
+        "temperature": 28.1,
+        "feelsLike": 27.7,
+        "humidity": 39,
+        "pressure": 1005,
+        "windSpeed": 2.1,
+        "description": "clear sky",
+        "visibility": 10000
+      },
+      "fusionScore": 67.4
+    }
+  ],
+  "message": "Historial obtenido exitosamente",
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 4,
+    "hasNext": false,
+    "hasPrev": false
+  }
+}
 ```
 
 ## Scripts Disponibles
@@ -241,72 +359,89 @@ npm run logs             # Ver logs de funciones
 
 ### Funciones Lambda
 
-- **getPeople**: Handler para listar personajes
-- **createPerson**: Handler para crear personajes
-- **getPerson**: Handler para obtener personaje por ID
-- **updatePerson**: Handler para actualizar personajes
-- **deletePerson**: Handler para eliminar personajes
-- **authorizer**: Función de autorización JWT
+- **getToken**: Genera tokens JWT
+- **authorizerFunc**: Función de autorización personalizada
+- **getDatosFusionados**: Obtiene datos fusionados aleatorios
+- **getFusionDataByCharacter**: Datos fusionados por personaje específico
+- **almacenarDatos**: Almacena datos personalizados (protegido)
+- **getHistorial**: Consulta historial paginado (protegido)
+- **serveOpenAPI**: Sirve especificación OpenAPI
+- **docs**: Sirve documentación interactiva
 
 ### Recursos AWS
 
 #### DynamoDB Tables
 
-- **PeopleTable**: Almacena personajes personalizados
-  - Partition Key: `id` (String)
-  - Modo de facturación: Pay-per-request
-  - Eliminación automática en stack removal
+1. **FusionTable** (`rimac-reto-api-fusion-{stage}`)
+   - Partition Key: `id` (String)
+   - GSI: `TimestampIndex` por timestamp
+   - Point-in-time recovery habilitado
+
+2. **CustomTable** (`rimac-reto-api-custom-{stage}`)
+   - Partition Key: `id` (String)
+   - GSI: `TimestampIndex` por timestamp
+   - Point-in-time recovery habilitado
+
+3. **CacheTable** (`rimac-reto-api-cache-{stage}`)
+   - Partition Key: `cacheKey` (String)
+   - TTL habilitado para expiración automática
+   - Point-in-time recovery habilitado
 
 #### API Gateway
 
-- **Configuración CORS**: Habilitada para desarrollo
+- **Rate Limiting**: 5 requests/segundo, burst 10
+- **CORS**: Habilitado para todos los endpoints
 - **Autorización**: JWT personalizada para endpoints protegidos
-- **Validación**: Schemas de request/response
+- **Documentación**: OpenAPI 3.0 integrada
+
+#### CloudWatch Dashboard
+
+Dashboard automático con métricas de:
+- Invocaciones Lambda
+- Errores y duración
+- Consumo DynamoDB
+- Métricas de performance
 
 ### Variables de Entorno por Función
 
 ```yaml
 environment:
-  PEOPLE_TABLE: !Ref PeopleTable
-  JWT_SECRET: ${env:JWT_SECRET}
+  IS_OFFLINE: ${env:IS_OFFLINE, 'false'}
   STAGE: ${self:provider.stage}
+  DYNAMODB_TABLE_FUSION: rimac-reto-api-fusion-${stage}
+  DYNAMODB_TABLE_CUSTOM: rimac-reto-api-custom-${stage}
+  DYNAMODB_TABLE_CACHE: rimac-reto-api-cache-${stage}
+  JWT_SECRET: ${env:JWT_SECRET}
+  SWAPI_BASE_URL: https://swapi.dev/api
+  WEATHER_API_KEY: ${env:WEATHER_API_KEY}
+  WEATHER_BASE_URL: https://api.openweathermap.org/data/2.5
+  LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
 ```
 
-## Pruebas
+## Monitoreo y Observabilidad
 
-```bash
-# Ejecutar todas las pruebas
-npm test
+### CloudWatch Dashboard
 
-# Pruebas específicas
-npm test -- --testPathPattern=handlers
-
-# Cobertura de código
-npm run test:coverage
-
-# Modo interactivo
-npm run test:watch
+Accede al dashboard automático en:
+```
+https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=rimac-reto-api-{stage}-dashboard
 ```
 
-## Monitoreo y Logs
+### X-Ray Tracing
 
-### Ver logs de funciones
+- Tracing habilitado para Lambda y API Gateway
+- Seguimiento de requests distribuidos
+- Análisis de performance end-to-end
+
+### Logs Estructurados
 
 ```bash
-# Logs de una función específica
-serverless logs -f getPeople --tail
+# Ver logs de función específica
+serverless logs -f getDatosFusionados --tail
 
-# Logs de todas las funciones
+# Ver logs de todas las funciones
 npm run logs
 ```
-
-### CloudWatch
-
-Las métricas y logs están disponibles en AWS CloudWatch:
-- Duración de ejecución
-- Errores y timeouts
-- Invocaciones por minuto
-- Memoria utilizada
 
 ## Tecnologías Utilizadas
 
@@ -314,35 +449,60 @@ Las métricas y logs están disponibles en AWS CloudWatch:
 - **Lenguaje**: TypeScript
 - **Framework**: Serverless Framework v3
 - **Cloud Provider**: AWS
-- **Servicios AWS**: Lambda, API Gateway, DynamoDB, CloudWatch
-- **APIs Externas**: Star Wars API (SWAPI)
-- **Testing**: Jest
-- **Linting**: ESLint
-- **Validación**: Joi
+- **Servicios AWS**: Lambda, API Gateway, DynamoDB, CloudWatch, X-Ray
+- **APIs Externas**: 
+  - Star Wars API (SWAPI) - `https://swapi.dev/api`
+  - OpenWeatherMap API - `https://api.openweathermap.org/data/2.5`
 - **Autenticación**: JWT
+- **Documentación**: OpenAPI 3.0
+- **Plugins Serverless**:
+  - `serverless-plugin-typescript`
+  - `serverless-offline`
+  - `serverless-dynamodb-local`
+  - `serverless-dotenv-plugin`
+  - `serverless-openapi-documenter`
 
 ## Variables de Entorno
 
 | Variable | Descripción | Requerida | Default |
 |----------|-------------|-----------|---------|
 | `JWT_SECRET` | Clave secreta para JWT | Sí | - |
-| `AWS_REGION` | Región de AWS | No | us-east-1 |
-| `STAGE` | Entorno de despliegue | No | dev |
+| `WEATHER_API_KEY` | API Key de OpenWeatherMap | Sí | - |
+| `LOG_LEVEL` | Nivel de logging | No | info |
+| `IS_OFFLINE` | Indica si está en modo offline | No | false |
 
 ## Optimización de Costos
 
 - **DynamoDB**: Modo pay-per-request (solo pagas por uso)
-- **Lambda**: Timeout de 30s y memoria de 128MB optimizada
-- **API Gateway**: Sin costos adicionales en tier gratuito
-- **CloudWatch**: Logs con retención automática
+- **Lambda**: Timeout de 10s y memoria de 256MB optimizada
+- **API Gateway**: Rate limiting para controlar costos
+- **CloudWatch**: Dashboard automático incluido
+- **Cache**: TTL automático para reducir llamadas a APIs externas
 
 ## Seguridad
 
-- **IAM Roles**: Permisos mínimos necesarios
-- **JWT**: Tokens con expiración
+- **IAM Roles**: Permisos mínimos necesarios por función
+- **JWT**: Tokens con expiración de 1 hora
 - **CORS**: Configurado para desarrollo seguro
-- **Validación**: Schemas estrictos para requests
+- **Rate Limiting**: 5 RPS por API Key
 - **Encriptación**: En tránsito y en reposo
+- **Point-in-Time Recovery**: Habilitado en todas las tablas
+
+## Documentación API
+
+### OpenAPI Specification
+
+La especificación completa está disponible en:
+- **JSON**: `GET /openapi.json`
+- **Docs Interactivos**: `GET /docs`
+
+### Modelos de Datos
+
+La API incluye modelos completamente documentados para:
+- Requests de autenticación
+- Respuestas de datos fusionados
+- Paginación de historial
+- Manejo de errores
 
 ## Troubleshooting
 
@@ -360,9 +520,16 @@ Las métricas y logs están disponibles en AWS CloudWatch:
    serverless dynamodb start
    ```
 
-3. **Error de compilación TypeScript**
+3. **Error con Weather API**
    ```bash
-   npm run build
+   # Verificar que WEATHER_API_KEY esté configurado
+   echo $WEATHER_API_KEY
+   ```
+
+4. **Token JWT inválido**
+   ```bash
+   # Verificar que JWT_SECRET esté configurado
+   echo $JWT_SECRET
    ```
 
 ## Contribución
