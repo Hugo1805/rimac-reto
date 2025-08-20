@@ -37,7 +37,7 @@ describe('SWAPIService', () => {
       const mockAxiosInstance = {
         get: jest.fn().mockResolvedValue({ data: mockPerson }),
       };
-      
+
       (swapiService as any).client = mockAxiosInstance;
 
       const result = await swapiService.getPerson(1);
@@ -50,10 +50,12 @@ describe('SWAPIService', () => {
       const mockAxiosInstance = {
         get: jest.fn().mockRejectedValue(new Error('Network error')),
       };
-      
+
       (swapiService as any).client = mockAxiosInstance;
 
-      await expect(swapiService.getPerson(1)).rejects.toThrow('Error fetching person 1');
+      await expect(swapiService.getPerson(1)).rejects.toThrow(
+        'Error fetching person 1',
+      );
     });
   });
 
@@ -61,14 +63,14 @@ describe('SWAPIService', () => {
     it('should extract ID from SWAPI URL', () => {
       const url = 'https://swapi.dev/api/people/1/';
       const id = swapiService.extractIdFromUrl(url);
-      
+
       expect(id).toBe(1);
     });
 
     it('should return 1 for invalid URL', () => {
       const url = 'invalid-url';
       const id = swapiService.extractIdFromUrl(url);
-      
+
       expect(id).toBe(1);
     });
   });
@@ -97,12 +99,58 @@ describe('SWAPIService', () => {
       const mockAxiosInstance = {
         get: jest.fn().mockResolvedValue({ data: mockPerson }),
       };
-      
+
       (swapiService as any).client = mockAxiosInstance;
 
       const result = await swapiService.getRandomPerson();
 
       expect(result).toEqual(mockPerson);
+      expect(mockAxiosInstance.get).toHaveBeenCalled();
+    });
+  });
+
+  describe('get Person by name', () => {
+    it('should get a person by name', async () => {
+      const mockPerson : { count: number, next: string | null, previous: string | null, results: SWAPIPerson[] } = {
+        count: 1,
+        next: null,
+        previous: null,
+        results: [
+          {
+            name: 'Leia Organa',
+            height: '150',
+            mass: '49',
+            hair_color: 'brown',
+            skin_color: 'light',
+            eye_color: 'brown',
+            birth_year: '19BBY',
+            gender: 'female',
+            homeworld: 'https://swapi.dev/api/planets/2/',
+            films: [
+              'https://swapi.dev/api/films/1/',
+              'https://swapi.dev/api/films/2/',
+              'https://swapi.dev/api/films/3/',
+              'https://swapi.dev/api/films/6/',
+            ],
+            species: [],
+            vehicles: ['https://swapi.dev/api/vehicles/30/'],
+            starships: [],
+            created: '2014-12-10T15:20:09.791000Z',
+            edited: '2014-12-20T21:17:50.315000Z',
+            url: 'https://swapi.dev/api/people/5/',
+          },
+        ],
+      };
+
+      const mockAxiosInstance = {
+        get: jest.fn().mockResolvedValue({ data: mockPerson }),
+      };
+
+      (swapiService as any).client = mockAxiosInstance;
+
+      const result = await swapiService.getPersonByName('leia');
+
+      expect(result).toEqual(mockPerson.results[0]);
       expect(mockAxiosInstance.get).toHaveBeenCalled();
     });
   });

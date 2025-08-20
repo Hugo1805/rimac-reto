@@ -1,7 +1,9 @@
 import { 
   APIGatewayRequestAuthorizerEvent, 
   APIGatewayAuthorizerResult, 
-  PolicyDocument 
+  PolicyDocument,
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult
 } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
 import { JWTPayload } from '../types';
@@ -94,4 +96,61 @@ export const generateToken = (userId: string, email?: string): string => {
     expiresIn: '24h',
     issuer: 'rimac-reto-api',
   });
+};
+
+// Agregar esta función al final del archivo
+export const getToken = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  try {
+    const body = JSON.parse(event.body || '{}');
+    const { username, password } = body;
+
+    console.log('Login attempt for username:', username);
+
+    // Validación simple de credenciales
+    if (username === 'admin' && password === 'rimac2025') {
+      const token = generateToken('user-123', 'admin@rimac.com');
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        },
+        body: JSON.stringify({ 
+          token,
+          message: 'Authentication successful',
+          expiresIn: '24h'
+        })
+      };
+    }
+
+    return {
+      statusCode: 401,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ 
+        error: 'Invalid credentials',
+        message: 'Use username: admin, password: rimac2024'
+      })
+    };
+  } catch (error) {
+    console.error('Token generation error:', error);
+    
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        message: 'Failed to generate token'
+      })
+    };
+  }
 };

@@ -1,20 +1,31 @@
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient, Select } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  ScanCommand,
+  QueryCommand,
+  GetCommand,
+  DeleteCommand,
+} from '@aws-sdk/lib-dynamodb';
 import { FusionData, CustomData, CacheEntry, PaginationParams } from '../types';
+import { fromIni } from '@aws-sdk/credential-providers';
 
 export class DynamoDBService {
-  private dynamodb: DynamoDB.DocumentClient;
+  private docClient: DynamoDBDocumentClient;
   private fusionTable: string;
   private customTable: string;
   private cacheTable: string;
 
   constructor() {
-    this.dynamodb = new DynamoDB.DocumentClient({
+    // Configuración directa para AWS (sin modo offline)
+    const client = new DynamoDBClient({
       region: process.env.AWS_REGION || 'us-east-1',
-      ...(process.env.STAGE === 'dev' && {
-        endpoint: 'http://localhost:8000',
-      }),
+      credentials: fromIni({ profile: 'serverless2' }),
     });
 
+    this.docClient = DynamoDBDocumentClient.from(client, {
+      marshallOptions: { removeUndefinedValues: true },
+    });
     this.fusionTable = process.env.DYNAMODB_TABLE_FUSION!;
     this.customTable = process.env.DYNAMODB_TABLE_CUSTOM!;
     this.cacheTable = process.env.DYNAMODB_TABLE_CACHE!;
@@ -22,13 +33,13 @@ export class DynamoDBService {
 
   // Fusion Data Methods
   async saveFusionData(data: FusionData): Promise<void> {
-    const params = {
+    const command = new PutCommand({
       TableName: this.fusionTable,
       Item: data,
-    };
+    });
 
     try {
-      await this.dynamodb.put(params).promise();
+      await this.docClient.send(command);
     } catch (error) {
       throw new Error(`Error saving fusion data: ${error}`);
     }
@@ -46,61 +57,49 @@ export class DynamoDBService {
       // Get total count first
       const countParams = {
         TableName: this.fusionTable,
-        Select: 'COUNT',
+        Select: Select.COUNT, // Usar el enum correcto
       };
 
-      const countResult = await this.dynamodb.scan(countParams).promise();
+      const countResult = await this.docClient.send(
+        new ScanCommand(countParams),
+      );
       const total = countResult.Count || 0;
 
-      // Get paginated results
+      // Simplificar la paginación usando scan
       const params = {
         TableName: this.fusionTable,
-        IndexName: 'TimestampIndex',
-        ScanIndexForward: false, // Descending order (newest first)
         Limit: limit,
-        ...(page > 1 && {
-          ExclusiveStartKey: {
-            timestamp: Date.now() - ((page - 1) * limit * 1000 * 60 * 60), // Rough approximation
-          },
-        }),
       };
 
-      const result = await this.dynamodb.query(params).promise();
-      
+      const result = await this.docClient.send(new ScanCommand(params));
+      const items = (result.Items as FusionData[]) || [];
+
+      // Sort by timestamp descending
+      items.sort((a, b) => b.timestamp - a.timestamp);
+
+      // Paginate manually
+      const startIndex = (page - 1) * limit;
+      const paginatedItems = items.slice(startIndex, startIndex + limit);
+
       return {
-        items: (result.Items as FusionData[]) || [],
-        hasNext: !!result.LastEvaluatedKey,
+        items: paginatedItems,
+        hasNext: startIndex + limit < items.length,
         total,
       };
     } catch (error) {
-      // Fallback to scan if GSI query fails
-      const params = {
-        TableName: this.fusionTable,
-        Limit: limit,
-      };
-
-      const result = await this.dynamodb.scan(params).promise();
-      const items = (result.Items as FusionData[]) || [];
-      
-      // Sort by timestamp descending
-      items.sort((a, b) => b.timestamp - a.timestamp);
-      
-      return {
-        items: items.slice((page - 1) * limit, page * limit),
-        hasNext: items.length > page * limit,
-      };
+      throw new Error(`Error fetching fusion history: ${error}`);
     }
   }
 
   // Custom Data Methods
   async saveCustomData(data: CustomData): Promise<void> {
-    const params = {
+    const command = new PutCommand({
       TableName: this.customTable,
       Item: data,
-    };
+    });
 
     try {
-      await this.dynamodb.put(params).promise();
+      await this.docClient.send(command);
     } catch (error) {
       throw new Error(`Error saving custom data: ${error}`);
     }
@@ -115,24 +114,35 @@ export class DynamoDBService {
     const page = pagination.page || 1;
 
     try {
-      const params = {
+      // Get total count
+      const countParams = {
         TableName: this.customTable,
-        Limit: limit * page, // Get more items to simulate pagination
+        Select: Select.COUNT, // Usar el enum correcto
       };
 
-      const result = await this.dynamodb.scan(params).promise();
+      const countResult = await this.docClient.send(
+        new ScanCommand(countParams),
+      );
+      const total = countResult.Count || 0;
+
+      // Get items
+      const command = new ScanCommand({
+        TableName: this.customTable,
+        Limit: limit,
+      });
+
+      const result = await this.docClient.send(command);
       const items = (result.Items as CustomData[]) || [];
-      
-      // Sort by timestamp descending
+
       items.sort((a, b) => b.timestamp - a.timestamp);
-      
+
       const startIndex = (page - 1) * limit;
       const paginatedItems = items.slice(startIndex, startIndex + limit);
-      
+
       return {
         items: paginatedItems,
-        hasNext: items.length > page * limit,
-        total: items.length,
+        hasNext: startIndex + limit < items.length,
+        total,
       };
     } catch (error) {
       throw new Error(`Error fetching custom history: ${error}`);
@@ -141,23 +151,23 @@ export class DynamoDBService {
 
   // Cache Methods
   async getCacheEntry(cacheKey: string): Promise<CacheEntry | null> {
-    const params = {
+    const command = new GetCommand({
       TableName: this.cacheTable,
       Key: { cacheKey },
-    };
+    });
 
     try {
-      const result = await this.dynamodb.get(params).promise();
+      const result = await this.docClient.send(command);
       const item = result.Item as CacheEntry;
-      
+
       if (!item) return null;
-      
+
       // Check if cache entry has expired
       if (item.ttl * 1000 < Date.now()) {
         await this.deleteCacheEntry(cacheKey);
         return null;
       }
-      
+
       return item;
     } catch (error) {
       console.error(`Error getting cache entry: ${error}`);
@@ -165,10 +175,14 @@ export class DynamoDBService {
     }
   }
 
-  async setCacheEntry(cacheKey: string, data: any, ttlMinutes: number = 30): Promise<void> {
-    const ttl = Math.floor(Date.now() / 1000) + (ttlMinutes * 60);
-    
-    const params = {
+  async setCacheEntry(
+    cacheKey: string,
+    data: any,
+    ttlMinutes: number = 30,
+  ): Promise<void> {
+    const ttl = Math.floor(Date.now() / 1000) + ttlMinutes * 60;
+
+    const command = new PutCommand({
       TableName: this.cacheTable,
       Item: {
         cacheKey,
@@ -176,23 +190,23 @@ export class DynamoDBService {
         ttl,
         createdAt: Date.now(),
       },
-    };
+    });
 
     try {
-      await this.dynamodb.put(params).promise();
+      await this.docClient.send(command);
     } catch (error) {
       console.error(`Error setting cache entry: ${error}`);
     }
   }
 
   async deleteCacheEntry(cacheKey: string): Promise<void> {
-    const params = {
+    const command = new DeleteCommand({
       TableName: this.cacheTable,
       Key: { cacheKey },
-    };
+    });
 
     try {
-      await this.dynamodb.delete(params).promise();
+      await this.docClient.send(command);
     } catch (error) {
       console.error(`Error deleting cache entry: ${error}`);
     }

@@ -19,7 +19,7 @@ export class FusionService {
     // Check cache first
     const cacheKey = this.dbService.generateCacheKey('fusion', 'random');
     const cachedData = await this.dbService.getCacheEntry(cacheKey);
-    
+
     if (cachedData) {
       console.log('Returning cached fusion data');
       return cachedData.data as FusionData;
@@ -28,30 +28,81 @@ export class FusionService {
     try {
       // Get random Star Wars character
       const person = await this.swapiService.getRandomPerson();
-      
+
       // Get character's homeworld
       const planet = await this.swapiService.getPlanet(person.homeworld);
-      
+
       // Get weather data for mapped city
       const cityName = this.weatherService.mapPlanetToCity(planet.name);
       const weather = await this.weatherService.getWeatherByCity(cityName);
-      
+
       // Create fusion data
       const fusionData = this.createFusedData(person, planet, weather);
-      
+
       // Save to database
       await this.dbService.saveFusionData(fusionData);
-      
+
       // Cache the result
       await this.dbService.setCacheEntry(cacheKey, fusionData, 30);
-      
+
       return fusionData;
     } catch (error) {
       throw new Error(`Error creating fusion data: ${error}`);
     }
   }
 
-  private createFusedData(person: SWAPIPerson, planet: SWAPIPlanet, weather: WeatherData): FusionData {
+  async createFusionDataByCharacter(
+    characterName: string,
+  ): Promise<FusionData> {
+    // Check cache first
+    const cacheKey = this.dbService.generateCacheKey(
+      'fusion',
+      characterName.toLowerCase(),
+    );
+    const cachedData = await this.dbService.getCacheEntry(cacheKey);
+
+    if (cachedData) {
+      console.log(`Returning cached fusion data for ${characterName}`);
+      return cachedData.data as FusionData;
+    }
+
+    try {
+      // Search for specific Star Wars character
+      const person = await this.swapiService.getPersonByName(characterName);
+
+      if (!person) {
+        throw new Error(`Character "${characterName}" not found`);
+      }
+
+      // Get character's homeworld
+      const planet = await this.swapiService.getPlanet(person.homeworld);
+
+      // Get weather data for mapped city
+      const cityName = this.weatherService.mapPlanetToCity(planet.name);
+      const weather = await this.weatherService.getWeatherByCity(cityName);
+
+      // Create fusion data
+      const fusionData = this.createFusedData(person, planet, weather);
+
+      // Save to database
+      await this.dbService.saveFusionData(fusionData);
+
+      // Cache the result
+      await this.dbService.setCacheEntry(cacheKey, fusionData, 30);
+
+      return fusionData;
+    } catch (error) {
+      throw new Error(
+        `Error creating fusion data for ${characterName}: ${error}`,
+      );
+    }
+  }
+
+  private createFusedData(
+    person: SWAPIPerson,
+    planet: SWAPIPlanet,
+    weather: WeatherData,
+  ): FusionData {
     const id = uuidv4();
     const timestamp = Date.now();
 
@@ -87,7 +138,11 @@ export class FusionService {
     };
 
     // Calculate fusion score (custom metric)
-    const fusionScore = this.calculateFusionScore(character, planetData, weatherData);
+    const fusionScore = this.calculateFusionScore(
+      character,
+      planetData,
+      weatherData,
+    );
 
     return {
       id,
@@ -107,7 +162,7 @@ export class FusionService {
 
   private parseGravity(gravity: string): number {
     if (gravity === 'unknown' || gravity === 'N/A') return 1;
-    
+
     // Handle formats like "1 standard", "0.5 standard", "2.5"
     const match = gravity.match(/(\d+\.?\d*)/);
     if (match) {
@@ -122,11 +177,11 @@ export class FusionService {
 
   private normalizeGender(gender: string): string {
     const genderMap: Record<string, string> = {
-      'male': 'Male',
-      'female': 'Female',
-      'hermaphrodite': 'Hermaphrodite',
+      male: 'Male',
+      female: 'Female',
+      hermaphrodite: 'Hermaphrodite',
       'n/a': 'Not Applicable',
-      'none': 'None',
+      none: 'None',
     };
     return genderMap[gender.toLowerCase()] || gender;
   }
@@ -142,13 +197,14 @@ export class FusionService {
   private calculateFusionScore(
     character: any,
     planet: any,
-    weather: any
+    weather: any,
   ): number {
     let score = 0;
 
     // Character factors (0-30 points)
-    if (character.height > 0) score += Math.min(character.height / 200 * 10, 10);
-    if (character.mass > 0) score += Math.min(character.mass / 100 * 10, 10);
+    if (character.height > 0)
+      score += Math.min((character.height / 200) * 10, 10);
+    if (character.mass > 0) score += Math.min((character.mass / 100) * 10, 10);
     if (character.name.length > 5) score += 5;
     if (character.eyeColor !== 'unknown') score += 5;
 

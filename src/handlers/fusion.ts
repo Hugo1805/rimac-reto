@@ -47,3 +47,63 @@ export const getDatosFusionados = async (
     };
   }
 };
+
+export const createFusionDataByCharacter = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  console.log('Event:', JSON.stringify(event, null, 2));
+
+  const characterName = event.pathParameters?.characterName;
+
+  if (!characterName) {
+    return {
+      statusCode: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({
+        success: false,
+        message: 'Falta el nombre del personaje',
+      }),
+    };
+  }
+
+  try {
+    const fusionData = await fusionService.createFusionDataByCharacter(characterName);
+
+    const response: ApiResponse = {
+      success: true,
+      data: fusionData,
+      message: 'Datos fusionados obtenidos exitosamente',
+    };
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+      body: JSON.stringify(response),
+    };
+  } catch (error) {
+    console.error('Error in createFusionDataByCharacter:', error);
+
+    const response: ApiResponse = {
+      success: false,
+      error: 'Error interno del servidor',
+      message: 'No se pudieron obtener los datos fusionados',
+    };
+
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify(response),
+    };
+  }
+};

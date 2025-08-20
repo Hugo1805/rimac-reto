@@ -62,6 +62,7 @@ typings/
 
 # dotenv environment variables file
 .env
+.env.dev
 .env.test
 .env.local
 .env.production
@@ -139,3 +140,14 @@ test-results.xml
 
 # Serverless Framework
 .serverless/
+
+# Archivos comprimidos
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# Paquetes de deployment
+deployment-package.tar.gz
+lambda-package.tar.gz

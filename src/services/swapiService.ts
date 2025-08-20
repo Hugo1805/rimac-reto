@@ -6,7 +6,7 @@ export class SWAPIService {
 
   constructor() {
     this.client = axios.create({
-      baseURL: process.env.SWAPI_BASE_URL || 'https://swapi.dev/api',
+      baseURL: process.env.SWAPI_BASE_URL || 'https://swapi.py4e.com/api',
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
@@ -50,5 +50,23 @@ export class SWAPIService {
   extractIdFromUrl(url: string): number {
     const matches = url.match(/\/(\d+)\/$/);
     return matches ? parseInt(matches[1], 10) : 1;
+  }
+
+  async getPersonByName(name: string): Promise<SWAPIPerson | null> {
+    try {
+      const response = await this.client.get(
+        `/people/?search=${encodeURIComponent(name)}`,
+      );
+      const data = response.data;
+
+      if (data.results && data.results.length > 0) {
+        // Return the first match (you could also implement fuzzy matching)
+        return data.results[0];
+      }
+
+      return null;
+    } catch (error) {
+      throw new Error(`Error searching for person ${name}: ${error}`);
+    }
   }
 }
