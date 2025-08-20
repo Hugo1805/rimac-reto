@@ -18,10 +18,16 @@ export class DynamoDBService {
 
   constructor() {
     // Configuración directa para AWS (sin modo offline)
-    const client = new DynamoDBClient({
-      region: process.env.AWS_REGION || 'us-east-1',
-      credentials: fromIni({ profile: 'serverless2' }),
+    let client = new DynamoDBClient({
+      region: process.env.AWS_REGION || 'us-east-1'
     });
+
+    if (process.env.IS_OFFLINE === 'true') {
+      client = new DynamoDBClient({
+        region: process.env.AWS_REGION || 'us-east-1',
+        credentials: fromIni({ profile: process.env.AWS_PROFILE || 'default' }),
+      });
+    }
 
     this.docClient = DynamoDBDocumentClient.from(client, {
       marshallOptions: { removeUndefinedValues: true },
