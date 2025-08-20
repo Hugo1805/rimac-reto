@@ -16,14 +16,12 @@ provider:
   region: us-east-1
   timeout: 10
   memorySize: 256
-  # Configuración de CloudWatch Logs
+  # Configuración simplificada de CloudWatch Logs
   logs:
     restApi:
-      accessLogging: true
-      format: 'requestId: $requestId'
       executionLogging: true
       level: INFO
-      fullExecutionData: true
+      fullExecutionData: false
     frameworkLambda: true
   # Configuración de tracing con X-Ray
   tracing:
@@ -31,16 +29,12 @@ provider:
     apiGateway: true
   # Configuración de métricas
   metrics: true
+  # Remover la configuración problemática de apiGateway.logs
   apiGateway:
     usagePlan:
       throttle:
         burstLimit: 10
         rateLimit: 5
-    # Configuración de logs de API Gateway
-    logs:
-      level: INFO
-      dataTrace: true
-      executionLogging: true
   environment:
     IS_OFFLINE: ${env:IS_OFFLINE, 'false'}
     STAGE: ${self:provider.stage}
@@ -51,7 +45,6 @@ provider:
     SWAPI_BASE_URL: https://swapi.dev/api
     WEATHER_API_KEY: ${env:WEATHER_API_KEY, ''}
     WEATHER_BASE_URL: https://api.openweathermap.org/data/2.5
-    # Variables para CloudWatch
     LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
   iam:
     role:
@@ -68,7 +61,6 @@ provider:
             - 'Fn::GetAtt': [FusionTable, Arn]
             - 'Fn::GetAtt': [CustomTable, Arn]
             - 'Fn::GetAtt': [CacheTable, Arn]
-        # Permisos para CloudWatch Logs
         - Effect: Allow
           Action:
             - logs:CreateLogGroup
@@ -76,13 +68,11 @@ provider:
             - logs:PutLogEvents
           Resource: 
             - 'Fn::Sub': 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
-        # Permisos para X-Ray
         - Effect: Allow
           Action:
             - xray:PutTraceSegments
             - xray:PutTelemetryRecords
           Resource: '*'
-        # Permisos para CloudWatch Metrics
         - Effect: Allow
           Action:
             - cloudwatch:PutMetricData
@@ -212,7 +202,31 @@ functions:
 
 resources:
   Resources:
-    # CloudWatch Log Groups
+    # Agregar el rol necesario para API Gateway CloudWatch
+    ApiGatewayCloudWatchRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${self:provider.stage}-apigateway-cloudwatch-role
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - apigateway.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+    # Configurar la cuenta de API Gateway para usar el rol
+    ApiGatewayAccount:
+      Type: AWS::ApiGateway::Account
+      Properties:
+        CloudWatchRoleArn: 
+          Fn::GetAtt: [ApiGatewayCloudWatchRole, Arn]
+      DependsOn: ApiGatewayCloudWatchRole
+
+    # CloudWatch Log Groups (mantener existentes)
     GetTokenLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
@@ -331,7 +345,6 @@ resources:
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
-        # Habilitar CloudWatch Insights para DynamoDB
         PointInTimeRecoverySpecification:
           PointInTimeRecoveryEnabled: true
 
@@ -381,11 +394,6 @@ resources:
       Value:
         Fn::Sub: 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${self:service}-${self:provider.stage}-dashboard'
     
-    SNSTopicArn:
-      Description: 'SNS Topic ARN for alerts'
-      Value:
-        Ref: SNSTopicAlerts
-
 custom:
   dynamodb:
     stages:
